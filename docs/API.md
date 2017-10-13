@@ -37,7 +37,6 @@ attribute mode is one of the following:
 | touchButton       | int   | RW   | 1          | Button mask (1, 2, 4) for which click to send on touch devices. 0 means ignore clicks.
 | scale             | float | RW   | 1.0        | Display area scale factor
 | viewport          | bool  | RW   | false      | Use viewport clipping
-| xvp_password_sep  | str   | RW   | '@'        | Separator for XVP password fields
 | disconnectTimeout | int   | RW   | 3          | Time (in seconds) to wait for disconnection
 | wsProtocols       | arr   | RW   | ['binary'] | Protocols to use in the WebSocket connection
 | repeaterID        | str   | RW   | ''         | UltraVNC RepeaterID to connect to
@@ -50,22 +49,22 @@ In addition to the getter and setter methods to modify configuration
 attributes, the RFB object has other methods that are available in the
 object instance.
 
-| name               | parameters                     | description
-| ------------------ | ------------------------------ | ------------
-| connect            | (host, port, password, path)   | Connect to the given host:port/path. Optional password and path.
-| disconnect         | ()                             | Disconnect
-| sendPassword       | (passwd)                       | Send password after onPasswordRequired callback
-| sendCtrlAltDel     | ()                             | Send Ctrl-Alt-Del key sequence
-| xvpOp              | (ver, op)                      | Send a XVP operation (2=shutdown, 3=reboot, 4=reset)
-| xvpShutdown        | ()                             | Send XVP shutdown.
-| xvpReboot          | ()                             | Send XVP reboot.
-| xvpReset           | ()                             | Send XVP reset.
-| sendKey            | (keysym, code, down)           | Send a key press event. If down not specified, send a down and up event.
-| clipboardPasteFrom | (text)                         | Send a clipboard paste event
-| autoscale          | (width, height, downscaleOnly) | Scale the display
-| clippingDisplay    | ()                             | Check if the remote display is larger than the client display
-| requestDesktopSize | (width, height)                | Send a request to change the remote desktop size.
-| viewportChangeSize | (width, height)                | Change size of the viewport
+| name               | parameters                      | description
+| ------------------ | ------------------------------- | ------------
+| connect            | (host, port, credentials, path) | Connect to the given host:port/path. Optional credentials and path.
+| disconnect         | ()                              | Disconnect
+| sendCredentials    | (credentials)                   | Send credentials after onCredentials callback
+| sendCtrlAltDel     | ()                              | Send Ctrl-Alt-Del key sequence
+| xvpOp              | (ver, op)                       | Send a XVP operation (2=shutdown, 3=reboot, 4=reset)
+| xvpShutdown        | ()                              | Send XVP shutdown.
+| xvpReboot          | ()                              | Send XVP reboot.
+| xvpReset           | ()                              | Send XVP reset.
+| sendKey            | (keysym, code, down)            | Send a key press event. If down not specified, send a down and up event.
+| clipboardPasteFrom | (text)                          | Send a clipboard paste event
+| autoscale          | (width, height, downscaleOnly)  | Scale the display
+| clippingDisplay    | ()                              | Check if the remote display is larger than the client display
+| requestDesktopSize | (width, height)                 | Send a request to change the remote desktop size.
+| viewportChangeSize | (width, height)                 | Change size of the viewport
 
 
 ## 3 Callbacks
@@ -78,7 +77,7 @@ functions.
 | onUpdateState      | (rfb, state, oldstate)     | Connection state change (see details below)
 | onNotification     | (rfb, msg, level, options) | Notification for the UI (optional options)
 | onDisconnected     | (rfb, reason)              | Disconnection finished with an optional reason. No reason specified means normal disconnect.
-| onPasswordRequired | (rfb, msg)                 | VNC password is required (use sendPassword), optionally comes with a message.
+| onCredentials      | (rfb, types)               | VNC credentials are required (use sendCredentials)
 | onClipboard        | (rfb, text)                | RFB clipboard contents received
 | onBell             | (rfb)                      | RFB Bell message received
 | onFBUReceive       | (rfb, fbu)                 | RFB FBU received but not yet processed (see details below)
@@ -102,6 +101,20 @@ created for new connections.
 | connected        | connected normally
 | disconnecting    | starting to disconnect
 | disconnected     | disconnected - permanent end-state for this RFB object
+
+__RFB onCredentials callback details__
+
+The onCredentials callback is called when the server requests more
+credentials than was specified to connect(). The types argument is a list
+of all the credentials that are required. Currently the following are
+defined:
+
+| name     | description
+| -------- | ------------
+| username | User that authenticates
+| password | Password for user
+| target   | String specifying target machine or session
+
 
 __RFB onFBUReceive and on FBUComplete callback details__
 
